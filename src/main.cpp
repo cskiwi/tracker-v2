@@ -1,17 +1,23 @@
 #include <Arduino.h>
-#include <MicrophoneController.h>
 #include <Ticker.h>
+#include "LoggerController.h"
+#include "TimeController.h"
+#include "WifiController.h"
 
-MicrophoneController microphoneController;
+LoggerController loggerController;
 
-void checkMicrophones()
+void recordAudio()
 {
-  Serial.println("Checking microphones");
+  Serial.println("[" + TimeController::getFormattedDateTime() + "] Record Audio start");
 
-  microphoneController.setData();
-} 
+  loggerController.log();
 
-Ticker timerMicrophoneController(checkMicrophones, 4000, 10);
+  Serial.println("[" + TimeController::getFormattedDateTime() + "] Record Audio end");
+}
+
+// tick every 4 seconds
+Ticker recordTicker(recordAudio, 4000, 2);
+
 void setup()
 {
   Serial.begin(112500);
@@ -20,13 +26,17 @@ void setup()
     ; // wait for serial port to connect. Needed for native USB port only
   }
 
-  timerMicrophoneController.start();
+  const char *ssid = "iPhone van Jolien";
+  const char *password = "wifiJolien";
 
-  Serial.println("Setup DONE\n\n");
+  // WifiController::connectToWifi(ssid, password);
+  // TimeController::setInternalTime();
+  recordTicker.start();
+
+  Serial.println("[" + TimeController::getFormattedDateTime() + "] Setup done");
 }
 
 void loop()
 {
-  timerMicrophoneController.update();
+  recordTicker.update();
 }
-
