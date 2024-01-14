@@ -12,7 +12,7 @@ class LoggerController
 public:
   LoggerController();
 
-  void log();
+  void log(const int logInterval);
 };
 
 #endif

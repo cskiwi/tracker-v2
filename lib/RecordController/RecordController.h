@@ -3,6 +3,7 @@
 #include <Arduino.h>
 
 #include <driver/i2s.h>
+#include "TimeController.h"
 
 //
 // Configuration

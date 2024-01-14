@@ -4,9 +4,9 @@ LoggerController::LoggerController()
 {
 }
 
-void LoggerController::log()
+void LoggerController::log(const int duration)
 {
-  uint8_t logInterval = 10;
+  int logInterval = duration / 1000;
 
   // print that we are running a log cycle with the current time
   Serial.println("[" + TimeController::getFormattedDateTime() + "] Running log cycle");
@@ -15,17 +15,35 @@ void LoggerController::log()
   RecordController recordController;
   FileController fileController;
 
+  Serial.println("[" + TimeController::getFormattedDateTime() + "] Controllers initialized");
+
   // open the decibel file
-  file_t decibelFile = fileController.openDBFile("test.txt", true);
+  String dbAfileName = "decibel.csv";
+  file_t decibelFile = fileController.openDBFile(dbAfileName, true);
+
+  Serial.println("[" + TimeController::getFormattedDateTime() + "] " + dbAfileName + " opened");
 
   // recording us
   uint8_t recordingTimeUs = logInterval * 1000000;
-  file_t soundFile = fileController.openSoundFile("test.wav", true, recordingTimeUs);
+
+  // adding rnd number to file name
+  String fileName = "sound_" + TimeController::getFormattedFile() + ".wav";
+  file_t soundFile = fileController.openSoundFile(fileName, true, recordingTimeUs);
+
+  Serial.println("[" + TimeController::getFormattedDateTime() + "] " + fileName + " opened");
 
   for (int i = 0; i < logInterval; i++)
   {
     // record data sample
     SAMPLE_T *sample = recordController.recordSample();
+
+    // if sample is null, retry
+    if (sample == NULL)
+    {
+      Serial.println("[" + TimeController::getFormattedDateTime() + "] Sample is null, retrying");
+      // i--;
+      continue;
+    }
 
     // write sample to file
     fileController.writeSample(soundFile, (const byte *)sample);

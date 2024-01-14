@@ -41,3 +41,26 @@ String TimeController::getFormattedDateTime()
   sprintf(dateTimeBuffer, "%d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, minute, second);
   return dateTimeBuffer;
 }
+
+String TimeController::getFormattedFile()
+{
+  unsigned long epochTime = ntpClient.getEpochTime();
+  struct tm *ptm = gmtime((time_t *)&epochTime);
+  int month = ptm->tm_mon + 1;
+  int day = ptm->tm_mday;
+  int year = ptm->tm_year + 1900;
+  int hour = ptm->tm_hour;
+  int minute = ptm->tm_min;
+  int second = ptm->tm_sec;
+
+  // create a YYYY-MM-DD HH:MM:SS formatted string
+  char dateTimeBuffer[20];
+  sprintf(dateTimeBuffer, "%d_%02d_%02d_%02d_%02d_%02d", year, month, day, hour, minute, second);
+  return dateTimeBuffer;
+}
+
+
+unsigned long TimeController::getEpochTime()
+{
+  return ntpClient.getEpochTime();
+}

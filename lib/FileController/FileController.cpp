@@ -11,6 +11,8 @@
 
 FileController::FileController()
 {
+  Serial.println("[" + TimeController::getFormattedDateTime() + "] Mounting SD card...");
+
   FileController::file_install();
 }
 
@@ -27,8 +29,8 @@ void FileController::file_install()
   if (!_sd.begin(SD_CONFIG))
   {
     printf("Card Mount Failed\n");
-    _sd.initErrorHalt(&Serial);
-    return;
+
+    throw std::runtime_error("Card Mount Failed");
   }
 
   uint32_t size = _sd.card()->sectorCount();
@@ -51,7 +53,7 @@ file_t FileController::openSoundFile(const String &soundFileName, bool addHeader
   { // retry up to 5 times
     if (!soundFile.open(soundFileName.c_str(), O_APPEND | O_WRITE | O_CREAT))
     {
-      Serial.println("Failed to open sound file");
+      Serial.println("Failed to open sound file: " + soundFileName);
       retry++;
       delay(1000); // wait for 1 second before retrying
     }

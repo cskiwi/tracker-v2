@@ -11,6 +11,8 @@ class TimeController
 public:
   static void setInternalTime();
   static String getFormattedDateTime();
+  static String getFormattedFile();
+  static unsigned long getEpochTime();
 
 private:
     static WiFiUDP udp;

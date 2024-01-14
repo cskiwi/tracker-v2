@@ -56,6 +56,10 @@ void WifiController::connectToWifi(const char *ssid, const char *password)
   Serial.println("Connected to WiFi with IP: " + WiFi.localIP().toString());
 }
 
+boolean shouldStartRecording()
+{
+}
+
 void WifiController::disconnectFromWifi()
 {
   WiFi.disconnect();

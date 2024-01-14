@@ -2,17 +2,23 @@
 
 RecordController::RecordController()
 {
+    Serial.println("[" + TimeController::getFormattedDateTime() + "] Starting I2S");
+
     RecordController::mic_i2s_install();
     RecordController::mic_i2s_set_pin();
     i2s_start(I2S_PORT);
 
     // first sample can be discarded
-    recordSample();
+    SAMPLE_T *sample = recordSample();
+
+    // free sample memory
+    free(sample);
 }
 
 RecordController::~RecordController()
 {
-    // printf("Uninstalling I2S driver\n");
+    Serial.println("[" + TimeController::getFormattedDateTime() + "] stopping I2S");
+
     i2s_stop(I2S_PORT);
     i2s_driver_uninstall(I2S_PORT);
 }
@@ -22,10 +28,17 @@ SAMPLE_T *RecordController::recordSample()
     char *samples = (char *)calloc(READ_LEN, sizeof(char));
 
     size_t bytes_read = 0;
+
+    // check if memory was allocated
+    if (samples == NULL)
+    {
+        Serial.println("Error: Memory not allocated.");
+        return NULL;
+    }
+
     i2s_read(I2S_PORT, (void *)samples, READ_LEN, &bytes_read, portMAX_DELAY);
     i2s_adc_data_scale((uint8_t *)samples, (uint8_t *)samples, READ_LEN);
 
-    // printf("Bytes read: %d\n", bytes_read);
     return samples;
 }
 
