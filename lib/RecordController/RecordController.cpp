@@ -37,16 +37,13 @@ SAMPLE_T *RecordController::recordSample()
     }
 
     i2s_read(I2S_PORT, (void *)samples, READ_LEN, &bytes_read, portMAX_DELAY);
-    i2s_adc_data_scale((uint8_t *)samples, (uint8_t *)samples, READ_LEN);
+    // i2s_adc_data_scale((uint8_t *)samples, (uint8_t *)samples, READ_LEN);
 
     return samples;
 }
 
 void RecordController::mic_i2s_install()
 {
-    // Setup I2S to sample mono channel for SAMPLE_RATE * SAMPLE_BITS
-    // NOTE: Recent update to Arduino_esp32 (1.0.2 -> 1.0.3)
-    //       seems to have swapped ONLY_LEFT and ONLY_RIGHT channels
     const i2s_config_t i2s_config = {
         .mode = i2s_mode_t(I2S_MODE_MASTER | I2S_MODE_RX),
         .sample_rate = SAMPLE_RATE,

@@ -7,6 +7,7 @@
 
 #define PROD false
 LoggerController loggerController;
+RecordController recordController;
 ApiController apiController;
 Tracker tracker = Tracker("tracker-00");
 
@@ -26,6 +27,7 @@ const int apiInterval = (3 * 1000);
 
 void recordAudio();
 void checkApi();
+void recordDb();
 void blinkLed(int times, uint8_t pin = LED_1)
 {
   for (int i = 0; i < times; i++)
@@ -42,6 +44,9 @@ Ticker recordTicker(recordAudio, recordInterval);
 // tick every 10 seconds
 Ticker apiTicker(checkApi, apiInterval);
 
+// tick every second
+Ticker dbaTicker(recordDb, 1000);
+
 void setup()
 {
   pinMode(LED_1, OUTPUT);
@@ -52,14 +57,16 @@ void setup()
     ; // wait for serial port to connect. Needed for native USB port only
   }
 
-  const char *ssid = "iPhone van Jolien";
-  const char *password = "wifiJolien";
+  // const char *ssid = "iPhone van Jolien";
+  // const char *password = "wifiJolien";
 
-  WifiController::connectToWifi(ssid, password);
-  TimeController::setInternalTime();
-  apiController.setEndpoint(server, tracker, "1234567890");
+  // WifiController::connectToWifi(ssid, password);
+  // TimeController::setInternalTime();
+  // apiController.setEndpoint(server, tracker, "1234567890");
+  Serial.println("[" + TimeController::getFormattedDateTime() + "] Starting dba ticker");
 
-  apiTicker.start();
+  // apiTicker.start();
+  dbaTicker.start();
 
   blinkLed(1);
 
@@ -68,8 +75,9 @@ void setup()
 
 void loop()
 {
-  recordTicker.update();
-  apiTicker.update();
+  // recordTicker.update();
+  // apiTicker.update();
+  dbaTicker.update();
 }
 
 // real ticker functions
@@ -81,6 +89,7 @@ void recordAudio()
   {
     loggerController.log(recordDuration);
   }
+
   catch (const std::exception &e)
   {
     blinkLed(10);
@@ -117,4 +126,23 @@ void checkApi()
   }
 
   Serial.println("[" + TimeController::getFormattedDateTime() + "] Check api end");
+}
+
+void recordDb()
+{
+
+  try
+  {
+    SAMPLE_T *sample = recordController.recordSample();
+    float dba = DecibelController::calculateDecibel(sample);
+    Serial.println("[" + TimeController::getFormattedDateTime() + "] Dba: " + String(dba) + " dB(A)");
+    // free sample memory
+    free(sample);
+  }
+
+  catch (const std::exception &e)
+  {
+    blinkLed(10);
+    ESP.deepSleep(0);
+  }
 }
