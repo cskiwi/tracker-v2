@@ -12,15 +12,8 @@
 //
 // I2S Setup
 //
-#define I2S_TASK_PRI 4
-#define I2S_TASK_STACK 2048
+
 #define I2S_PORT I2S_NUM_0
-
-//
-// I2S pins
-//
-
-// MIC 1
 #define MIC_I2S_WS GPIO_NUM_22
 #define MIC_I2S_SD GPIO_NUM_21
 #define MIC_I2S_SCK GPIO_NUM_26
@@ -28,10 +21,6 @@
 //
 // Sampling
 //
-// #define SAMPLE_RATE (44100) // Hz, fixed to design of IIR filters
-// #define SAMPLE_BITS (16)    // bits
-// #define READ_LEN (SAMPLE_RATE * NUM_CHANNELS * (SAMPLE_BITS / 8)) // readlenght / second
-
 #define SAMPLE_RATE (44100)
 #define READ_LEN (SAMPLE_RATE * NUM_CHANNELS * (SAMPLE_BITS / 8)) // readlenght / second
 #define NUM_CHANNELS (1)
