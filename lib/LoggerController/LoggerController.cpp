@@ -4,7 +4,7 @@ LoggerController::LoggerController()
 {
 }
 
-void LoggerController::log(const int duration)
+void LoggerController::log(const int duration, const int decibelInterval, float gain)
 {
   int logInterval = duration / 1000;
 
@@ -14,6 +14,8 @@ void LoggerController::log(const int duration)
   // create a record controller and file controller
   RecordController recordController;
   FileController fileController;
+
+  recordController.setGain(gain);
 
   Serial.println("[" + TimeController::getFormattedDateTime() + "] Controllers initialized");
 
@@ -32,10 +34,18 @@ void LoggerController::log(const int duration)
 
   Serial.println("[" + TimeController::getFormattedDateTime() + "] " + fileName + " opened");
 
-  for (int i = 0; i < logInterval; i++)
+  int recordSize = recordController.getRecordSize(logInterval);
+  int decibelSize = recordController.getRecordSize(decibelInterval);
+  int totalRecorded = 0;
+  int lastDecibel = 0;
+
+  Serial.println("[" + TimeController::getFormattedDateTime() + "] Recording " + String(recordSize) + " bytes");
+
+  while (totalRecorded < recordSize)
   {
+    size_t bytes_read = 0;
     // record data sample
-    SAMPLE_T *sample = recordController.recordSample();
+    SAMPLE_T *sample = recordController.recordSample(&bytes_read);
 
     // if sample is null, retry
     if (sample == NULL)
@@ -45,16 +55,24 @@ void LoggerController::log(const int duration)
       continue;
     }
 
+    totalRecorded += bytes_read;
+
     // write sample to file
     fileController.writeSample(soundFile, (const byte *)sample);
 
-    // calculate decibel
-    float dba = DecibelController::calculateDecibel(sample);
+    if ((totalRecorded - lastDecibel) > decibelSize)
+    {
+      lastDecibel = totalRecorded;
 
-    // write decibel to file
-    String dbALine = TimeController::getFormattedDateTime() + ", " + String(dba);
-    fileController.writeLine(decibelFile, dbALine.c_str());
-    Serial.println("[" + TimeController::getFormattedDateTime() + "] Dba: " + String(dba) + " dB(A)");
+
+      // calculate decibel
+      float dba = DecibelController::calculateDecibel(sample);
+
+      // write decibel to file
+      String dbALine = TimeController::getFormattedDateTime() + ", " + String(dba);
+      fileController.writeLine(decibelFile, dbALine.c_str());
+      Serial.println("[" + TimeController::getFormattedDateTime() + "] Dba: " + String(dba) + " dB(A)");
+    }
 
     // free sample memory
     free(sample);

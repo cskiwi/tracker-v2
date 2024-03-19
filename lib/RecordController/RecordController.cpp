@@ -9,7 +9,8 @@ RecordController::RecordController()
     i2s_start(I2S_PORT);
 
     // first sample can be discarded
-    SAMPLE_T *sample = recordSample();
+    size_t bytes_read = 0;
+    SAMPLE_T *sample = recordSample(&bytes_read);
 
     // free sample memory
     free(sample);
@@ -23,11 +24,9 @@ RecordController::~RecordController()
     i2s_driver_uninstall(I2S_PORT);
 }
 
-SAMPLE_T *RecordController::recordSample()
+SAMPLE_T *RecordController::recordSample(size_t *bytes_read)
 {
     char *samples = (char *)calloc(READ_LEN, sizeof(char));
-
-    size_t bytes_read = 0;
 
     // check if memory was allocated
     if (samples == NULL)
@@ -36,10 +35,15 @@ SAMPLE_T *RecordController::recordSample()
         return NULL;
     }
 
-    i2s_read(I2S_PORT, (void *)samples, READ_LEN, &bytes_read, portMAX_DELAY);
-    // i2s_adc_data_scale((uint8_t *)samples, (uint8_t *)samples, READ_LEN);
+    i2s_read(I2S_PORT, (void *)samples, READ_LEN, bytes_read, portMAX_DELAY);
+    i2s_adc_data_scale((uint8_t *)samples, (uint8_t *)samples, READ_LEN);
 
     return samples;
+}
+
+int RecordController::getRecordSize(const uint8_t recordingTimeSeconds)
+{
+    return NUM_CHANNELS * SAMPLE_RATE * SAMPLE_BITS / 8 * recordingTimeSeconds;
 }
 
 void RecordController::mic_i2s_install()
@@ -127,4 +131,10 @@ wav_header_t RecordController::getWavHeader(const uint8_t recordingTimeUs)
     };                                               /* data length in bytes (filelength - 44)  */
 
     return wavh;
+}
+
+float RecordController::setGain(float gain)
+{
+    GAIN_FACTOR += gain;
+    return GAIN_FACTOR;
 }

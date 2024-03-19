@@ -5,11 +5,11 @@
 #include "WifiController.h"
 #include "ApiController.h"
 
-#define PROD false
+#define PROD true
 LoggerController loggerController;
-RecordController recordController;
+// RecordController recordController;
 ApiController apiController;
-Tracker tracker = Tracker("tracker-00");
+Tracker tracker = Tracker("tracker-15");
 
 #if PROD
 const char *server = "https://gull.purr.dev"; // Server URL
@@ -27,7 +27,7 @@ const int apiInterval = (3 * 1000);
 
 void recordAudio();
 void checkApi();
-void recordDb();
+// void recordDb();
 void blinkLed(int times, uint8_t pin = LED_1)
 {
   for (int i = 0; i < times; i++)
@@ -39,13 +39,15 @@ void blinkLed(int times, uint8_t pin = LED_1)
   }
 }
 
+float sound_pressure_refference = 0.023;
+
 // tick every 10 minutes
 Ticker recordTicker(recordAudio, recordInterval);
 // tick every 10 seconds
 Ticker apiTicker(checkApi, apiInterval);
 
 // tick every second
-Ticker dbaTicker(recordDb, 1000);
+// Ticker testTicker(recordDb, 10 * 1000);
 
 void setup()
 {
@@ -57,16 +59,18 @@ void setup()
     ; // wait for serial port to connect. Needed for native USB port only
   }
 
-  // const char *ssid = "iPhone van Jolien";
-  // const char *password = "wifiJolien";
+  const char *ssid = "iPhone van Jolien";
+  const char *password = "wifiJolien";
 
-  // WifiController::connectToWifi(ssid, password);
-  // TimeController::setInternalTime();
-  // apiController.setEndpoint(server, tracker, "1234567890");
-  Serial.println("[" + TimeController::getFormattedDateTime() + "] Starting dba ticker");
+  WifiController::connectToWifi(ssid, password);
+  TimeController::setInternalTime();
+  apiController.setEndpoint(server, tracker, "1234567890");
+  apiTicker.start();
 
-  // apiTicker.start();
-  dbaTicker.start();
+  // test
+  // testTicker.start();
+
+  // recordAudio();s
 
   blinkLed(1);
 
@@ -75,9 +79,9 @@ void setup()
 
 void loop()
 {
-  // recordTicker.update();
-  // apiTicker.update();
-  dbaTicker.update();
+  recordTicker.update();
+  apiTicker.update();
+  // testTicker.update();
 }
 
 // real ticker functions
@@ -128,21 +132,51 @@ void checkApi()
   Serial.println("[" + TimeController::getFormattedDateTime() + "] Check api end");
 }
 
-void recordDb()
-{
+// void recordDb()
+// {
 
-  try
-  {
-    SAMPLE_T *sample = recordController.recordSample();
-    float dba = DecibelController::calculateDecibel(sample);
-    Serial.println("[" + TimeController::getFormattedDateTime() + "] Dba: " + String(dba) + " dB(A)");
-    // free sample memory
-    free(sample);
-  }
+//   try
+//   {
 
-  catch (const std::exception &e)
-  {
-    blinkLed(10);
-    ESP.deepSleep(0);
-  }
-}
+//     // print sound pressure to .0000001 precision
+//     Serial.println("[" + TimeController::getFormattedDateTime() + "] Running dba for pressure: " + String(sound_pressure_refference, 7) + " Pa");
+
+//     // run 10 dba mesuremnets
+//     for (int i = 0; i < 10; i++)
+//     {
+//       SAMPLE_T *sample = recordController.recordSample();
+//       float dba = DecibelController::calculateDecibel(sample, sound_pressure_refference);
+//       Serial.println("[" + TimeController::getFormattedDateTime() + "] Dba: " + String(dba) + " dB(A)");
+//       // free sample memory
+//       free(sample);
+//     }
+
+//     // slightly increase sound pressure
+//     sound_pressure_refference += 0.00001;
+//   }
+
+//   catch (const std::exception &e)
+//   {
+//     blinkLed(10);
+//     ESP.deepSleep(0);
+//   }
+// }
+
+// void recordSoundFragment()
+// {
+
+//   try
+//   {
+//     loggerController.log(10 * 60 * 1000, gain);
+
+//     // gain += 1.0;
+
+//     Serial.println("[" + TimeController::getFormattedDateTime() + "] Gain is now: " + String(gain));
+//   }
+
+//   catch (const std::exception &e)
+//   {
+//     blinkLed(10);
+//     ESP.deepSleep(0);
+//   }
+// }

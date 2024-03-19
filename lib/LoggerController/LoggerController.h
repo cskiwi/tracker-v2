@@ -12,7 +12,7 @@ class LoggerController
 public:
   LoggerController();
 
-  void log(const int logInterval);
+  void log(const int logInterval, const int decibelInterval = 10, float gain = 3.0);
 };
 
 #endif

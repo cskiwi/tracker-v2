@@ -1,11 +1,11 @@
 #include "DecibelController.h"
 
-
-float DecibelController::calculateDecibel(SAMPLE_T *sampleBuffer)
+// calculate decibel with sample buffer and soundpressure
+float DecibelController::calculateDecibel(SAMPLE_T *sampleBuffer, float sound_pressure_refference)
 {
   // get sample size
   int sample_size = sizeof(sampleBuffer) / sizeof(sampleBuffer[0]);
-  
+
   // get highest peak
   float highest_peak = 0;
   for (int i = 0; i < sample_size; i += 2)
@@ -20,7 +20,6 @@ float DecibelController::calculateDecibel(SAMPLE_T *sampleBuffer)
 
   // calculate dbA
   float rms = sqrt(highest_peak / (sample_size / 2));
-  float dbA = 20 * log10(rms / REFERENCE_SOUND_PRESSURE);
-
+  float dbA = 20 * log10(rms / sound_pressure_refference);
   return dbA;
 }

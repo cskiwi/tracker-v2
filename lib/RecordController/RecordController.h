@@ -22,15 +22,15 @@
 // Sampling
 //
 #define SAMPLE_RATE (44100)
-#define READ_LEN (SAMPLE_RATE * NUM_CHANNELS * (SAMPLE_BITS / 8)) // readlenght / second
+#define READ_LEN (16 * 1024) // readlenght / second
 #define NUM_CHANNELS (1)
 #define SAMPLE_BITS (16)
 
 #define SAMPLE_T char
-#define GAIN_FACTOR 3.0
+// #define GAIN_FACTOR 3.0
 
-#define DMA_BANK_SIZE (SAMPLE_RATE / 8 / 16)
-#define DMA_BANKS 32
+#define DMA_BANKS 64       // dma_buf_count
+#define DMA_BANK_SIZE 1024 // dma_buf_len
 
 // Set up the WAV header
 struct wav_header_t
@@ -55,13 +55,17 @@ class RecordController
 public:
     RecordController();
     ~RecordController();
-    SAMPLE_T *recordSample();
+    SAMPLE_T *recordSample(size_t *bytes_read);
     static wav_header_t getWavHeader(const uint8_t recordingTimeUs);
+    float setGain(float gain);
+    int getRecordSize(const uint8_t recordingTimeSeconds);    
 
 private:
     void mic_i2s_install();
     void mic_i2s_set_pin();
     void i2s_adc_data_scale(uint8_t *d_buff, uint8_t *s_buff, uint32_t len);
+
+    float GAIN_FACTOR = 75;
 };
 
 #endif
